@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Siswa — Absensi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --blue:#4F8EF7; --purple:#7C5CFC;
+      --grad:linear-gradient(135deg,#4F8EF7,#7C5CFC);
+      --bg:#f0f2f8; --white:#fff; --border:#e5e7eb;
+      --gray:#6b7280; --dark:#111827;
+    }
+    body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); min-height:100vh; }
+
+    /* NAVBAR */
+    nav {
+      background:var(--white); border-bottom:1px solid var(--border);
+      padding:0 24px; height:60px;
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:10;
+    }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:800; color:var(--dark); }
+    .brand-icon { width:36px;height:36px; background:var(--grad); border-radius:10px; display:flex;align-items:center;justify-content:center; font-size:18px; }
+    .logout-btn {
+      padding:8px 18px; background:#ef4444; color:#fff; border:none;
+      border-radius:10px; font-family:inherit; font-size:.85rem; font-weight:700;
+      cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:6px;
+    }
+    .logout-btn:hover { background:#dc2626; }
+
+    main { max-width:960px; margin:0 auto; padding:28px 20px; }
+
+    /* DATE BAR */
+    .date-bar {
+      background:var(--white); border-radius:14px; padding:14px 20px;
+      display:flex; align-items:center; gap:10px; font-weight:600;
+      color:var(--dark); margin-bottom:24px; border:1px solid var(--border);
+    }
+
+    /* GRID */
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    @media(max-width:640px){ .grid{ grid-template-columns:1fr; } }
+
+    /* CARD */
+    .card { background:var(--white); border-radius:18px; padding:24px; border:1px solid var(--border); }
+    .card h2 { font-size:1.1rem; font-weight:800; color:var(--dark); margin-bottom:20px; }
+
+    /* INFO BADGES */
+    .badges { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+    .badge {
+      padding:6px 14px; border-radius:999px; font-size:.8rem; font-weight:600;
+      background:linear-gradient(135deg,rgba(79,142,247,.1),rgba(124,92,252,.1));
+      color:var(--purple);
+    }
+
+    /* SUDAH ABSEN BOX */
+    .done-box {
+      text-align:center; padding:32px 20px;
+      background:linear-gradient(135deg,rgba(79,142,247,.06),rgba(124,92,252,.06));
+      border-radius:14px; border:2px dashed rgba(124,92,252,.25);
+    }
+    .done-box .icon { font-size:52px; margin-bottom:10px; }
+    .done-box p { color:var(--purple); font-weight:700; font-size:1rem; }
+    .done-box small { color:var(--gray); font-size:.82rem; }
+
+    /* ABSEN BUTTON */
+    .btn-absen {
+      width:100%; margin-top:16px; padding:14px;
+      background:var(--grad); color:#fff; border:none;
+      border-radius:12px; font-family:inherit; font-size:1rem;
+      font-weight:700; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      transition:opacity .2s, transform .1s;
+    }
+    .btn-absen:hover { opacity:.9; }
+    .btn-absen:active { transform:scale(.98); }
+    .btn-absen:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* REKAP LIST */
+    .empty { text-align:center; padding:40px; color:var(--gray); }
+    .empty .big { font-size:48px; margin-bottom:10px; opacity:.3; }
+
+    .record {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 16px; background:var(--bg); border-radius:12px; margin-bottom:8px;
+    }
+    .record .info .name { font-weight:700; color:var(--dark); font-size:.9rem; }
+    .record .info .meta { color:var(--gray); font-size:.78rem; margin-top:2px; }
+    .time-pill { background:var(--grad); color:#fff; padding:4px 12px; border-radius:999px; font-size:.78rem; font-weight:700; }
+
+    /* ALERT */
+    .alert { padding:10px 14px; border-radius:10px; font-size:.85rem; font-weight:500; margin-bottom:16px; display:none; }
+    .alert.show { display:block; }
+    .alert-success { background:#d1fae5; color:#065f46; }
+    .alert-danger  { background:#fee2e2; color:#b91c1c; }
+
+    .help { position:fixed;bottom:24px;right:24px;width:40px;height:40px;border-radius:50%;background:#fff;color:var(--purple);border:2px solid var(--purple);font-weight:800;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center; }
+
+    /* LOADING */
+    .skeleton { background: linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:8px; height:20px; margin-bottom:8px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    <div class="brand-icon">🏫</div>
+    Attendance System
+  </div>
+  <a href="/logout" class="logout-btn">⬅ Logout</a>
+</nav>
+
+<main>
+  <div class="alert" id="alert"></div>
+
+  <!-- Date Bar -->
+  <div class="date-bar">📅 &nbsp;<span id="hari-ini">Memuat...</span></div>
+
+  <div class="grid">
+
+    <!-- KIRI: Form Absensi -->
+    <div class="card">
+      <h2>Fill Attendance</h2>
+
+      <!-- Info siswa -->
+      <div class="badges" id="info-badges">
+        <div class="skeleton" style="width:100px;height:28px;border-radius:999px;"></div>
+      </div>
+
+      <!-- Konten absensi (diisi JS) -->
+      <div id="absen-area">
+        <div class="skeleton" style="height:120px;"></div>
+      </div>
+    </div>
+
+    <!-- KANAN: Rekap Hari Ini -->
+    <div class="card">
+      <h2>Today's Records (<span id="total-rekap">0</span>)</h2>
+      <div id="rekap-list">
+        <div class="empty">
+          <div class="big">🏫</div>
+          <p>Memuat data...</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<button class="help">?</button>
+
+<script>
+  let dataSiswa = null;
+
+  // Load data dari server
+  async function loadData() {
+    const res = await fetch('/api/siswa-data');
+    dataSiswa = await res.json();
+    renderUI();
+  }
+
+  function renderUI() {
+    const d = dataSiswa;
+
+    // Update date bar
+    document.getElementById('hari-ini').textContent = d.hariIni;
+
+    // Update badges
+    document.getElementById('info-badges').innerHTML = `
+      <span class="badge">👤 ${d.nama}</span>
+      <span class="badge">🏫 ${d.kelas}</span>
+      <span class="badge"># ${d.no_absen}</span>
+    `;
+
+    // Render area absensi
+    if (d.sudahAbsen) {
+      document.getElementById('absen-area').innerHTML = `
+        <div class="done-box">
+          <div class="icon">✅</div>
+          <p>Absensi sudah tercatat!</p>
+          <small>Kamu sudah absen hari ini. Sampai jumpa besok!</small>
+        </div>
+      `;
+    } else {
+      document.getElementById('absen-area').innerHTML = `
+        <p style="color:#6b7280;font-size:.88rem;margin-bottom:4px;">
+          Klik tombol di bawah untuk mencatat kehadiranmu hari ini.
+        </p>
+        <button class="btn-absen" id="btn-absen" onclick="submitAbsen()">
+          ✅ Submit Attendance
+        </button>
+      `;
+    }
+
+    // Render rekap
+    const list = document.getElementById('rekap-list');
+    document.getElementById('total-rekap').textContent = d.rekap.length;
+
+    if (d.rekap.length === 0) {
+      list.innerHTML = `
+        <div class="empty">
+          <div class="big">🏫</div>
+          <p>Belum ada rekap absensimu</p>
+        </div>
+      `;
+    } else {
+      list.innerHTML = d.rekap.map(r => `
+        <div class="record">
+          <div class="info">
+            <div class="name">${r.nama}</div>
+            <div class="meta">Kelas ${r.kelas} &nbsp;·&nbsp; No. ${r.no_absen}</div>
+          </div>
+          <span class="time-pill">${r.waktu}</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  async function submitAbsen() {
+    const btn = document.getElementById('btn-absen');
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+
+    const res  = await fetch('/api/absen', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const data = await res.json();
+
+    const alert = document.getElementById('alert');
+    alert.textContent = data.pesan;
+    alert.className = `alert show ${data.sukses ? 'alert-success' : 'alert-danger'}`;
+
+    if (data.sukses) {
+      // Reload data untuk update tampilan
+      await loadData();
+    } else {
+      btn.disabled = false;
+      btn.textContent = '✅ Submit Attendance';
+    }
+
+    // Sembunyikan alert setelah 4 detik
+    setTimeout(() => alert.classList.remove('show'), 4000);
+  }
+
+  // Jalankan saat halaman load
+  loadData();
+</script>
+</body>
+</html>
